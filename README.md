@@ -56,6 +56,15 @@ Live payload:
 http://<host>:<WEB_PORT>/data.json
 ```
 
+## Verify
+
+From the repository root:
+
+```bash
+python3 -m unittest discover -s tests -q
+docker/smoke_test.sh
+```
+
 ## Project Layout
 
 - `docker/` - deploy-ready Docker stack

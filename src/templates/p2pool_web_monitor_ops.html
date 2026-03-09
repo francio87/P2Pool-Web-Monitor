@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>P2Pool Web Monitor (Ops)</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="shortcut icon" href="favicon.ico" sizes="16x16 32x32 48x48">
+  <script>
+__CHART_JS__
+  </script>
+  <style>
+    __EMBEDDED_FONT_FACE__
+
+    :root {
+      --bg: #0f141c;
+      --card: #171f2b;
+      --card-soft: #1b2433;
+      --text: #e8edf7;
+      --muted: #9fb0c8;
+      --border: #2a3649;
+      --cyan: #2dc6ff;
+      --green: #41d596;
+      --orange: #f2a940;
+      --red: #ec6b6b;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, -apple-system, Segoe UI, sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #0b1118, #101824 50%, #0f141c);
+      min-height: 100vh;
+    }
+
+    .wrap {
+      width: min(1300px, 95vw);
+      margin: 18px auto 28px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--card);
+    }
+
+    .title {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .view-tabs {
+      display: inline-flex;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+      background: #101827;
+      font-size: 12px;
+    }
+
+    .view-tabs a,
+    .view-tabs span {
+      padding: 7px 12px;
+      color: var(--muted);
+      text-decoration: none;
+      border-left: 1px solid var(--border);
+    }
+
+    .view-tabs a:first-child,
+    .view-tabs span:first-child {
+      border-left: none;
+    }
+
+    .view-tabs .active {
+      color: #f5f9ff;
+      background: #253148;
+      font-weight: 700;
+    }
+
+    .meta-row {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .meta-pill {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--card);
+      color: var(--muted);
+      font-size: 12px;
+      padding: 6px 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .meta-pill.ok {
+      color: var(--green);
+      border-color: rgba(65, 213, 150, 0.45);
+    }
+
+    .reliability-banner {
+      margin-top: 10px;
+      min-height: 0;
+    }
+
+    .alert {
+      border: 1px solid rgba(242, 169, 64, 0.4);
+      background: rgba(242, 169, 64, 0.12);
+      color: #ffd28c;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 13px;
+    }
+
+    .alert.ok {
+      border-color: rgba(65, 213, 150, 0.45);
+      background: rgba(65, 213, 150, 0.12);
+      color: #9aecc8;
+    }
+
+    .kpi-strip {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+    }
+
+    .kpi {
+      background: var(--card-soft);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px;
+    }
+
+    .kpi .label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .kpi .value {
+      margin-top: 6px;
+      font-size: 22px;
+      font-weight: 800;
+      line-height: 1.1;
+    }
+
+    .accent-cyan { color: var(--cyan); }
+    .accent-green { color: var(--green); }
+    .accent-red { color: var(--red); }
+
+    .grid {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: 2.2fr 1fr;
+      gap: 10px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px;
+    }
+
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .title-icon {
+      width: 17px;
+      height: 17px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      color: #bdd0ea;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      table-layout: fixed;
+    }
+
+    th, td {
+      padding: 8px 6px;
+      border-bottom: 1px solid #233145;
+      text-align: left;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .status {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .status-online {
+      background: rgba(65, 213, 150, 0.18);
+      color: var(--green);
+    }
+
+    .status-recently-offline {
+      background: rgba(242, 169, 64, 0.18);
+      color: var(--orange);
+    }
+
+    .signals {
+      display: grid;
+      gap: 8px;
+    }
+
+    .signal {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 9px;
+      background: #151e2a;
+    }
+
+    .signal b {
+      display: block;
+      font-size: 12px;
+      margin-bottom: 2px;
+    }
+
+    .signal span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .charts {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .chart-wrap {
+      height: 210px;
+      border: 1px solid #385174;
+      border-radius: 10px;
+      background: linear-gradient(180deg, #1a2535, #152030);
+      padding: 8px;
+    }
+
+    .bottom {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .cell {
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 8px;
+      background: #141d29;
+    }
+
+    .cell .slabel {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+
+    .cell .svalue {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .wallet-link {
+      color: #cde1ff;
+      text-decoration: none;
+    }
+
+    @media (max-width: 1120px) {
+      .kpi-strip { grid-template-columns: repeat(3, 1fr); }
+      .grid, .charts, .bottom { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 720px) {
+      .kpi-strip { grid-template-columns: repeat(2, 1fr); }
+      .stats { grid-template-columns: 1fr; }
+      .topbar { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="topbar">
+      <div>
+        <h1 class="title">P2Pool Web Monitor - Ops</h1>
+        <div class="subtitle">Operations board variant</div>
+      </div>
+      <div class="view-tabs" aria-label="View switcher">
+        <a id="classicViewLink" href="index.html">Classic view</a>
+        <span class="active">Ops view</span>
+      </div>
+    </header>
+
+    <div class="meta-row">
+      <span class="meta-pill ok" id="statusChip">Connected</span>
+      <span class="meta-pill">Auto refresh 30s</span>
+      <span class="meta-pill">Last update <span id="lastUpdate">Waiting for first snapshot</span></span>
+      <a class="meta-pill wallet-link" id="walletChip" href="#" target="_blank" rel="noopener noreferrer">
+        <span id="walletChipText">Wallet</span>
+      </a>
+    </div>
+
+    <div class="reliability-banner" id="reliabilityBanner"></div>
+
+    <section class="kpi-strip" id="kpiStrip"></section>
+
+    <div class="grid">
+      <section class="card">
+        <h2>
+          <svg class="title-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"></circle><path d="M2 21c0-3.3 3-6 7-6"></path><circle cx="17" cy="9" r="2.5"></circle><path d="M14 21c0-2.6 2.2-4.8 5-5"></path></svg>
+          Workers
+        </h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Address</th>
+              <th>Hashrate</th>
+              <th>Status</th>
+              <th>Last Seen</th>
+            </tr>
+          </thead>
+          <tbody id="workersTable"></tbody>
+        </table>
+      </section>
+
+      <section class="card">
+        <h2>
+          <svg class="title-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4"></path><path d="M12 17h.01"></path><path d="M10.3 3.8 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.8a2 2 0 0 0-3.4 0z"></path></svg>
+          Signals / Diagnostics
+        </h2>
+        <div class="signals" id="signalsPanel"></div>
+      </section>
+    </div>
+
+    <div class="charts">
+      <section class="card">
+        <h2>
+          <svg class="title-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"></path><path d="M7 13l4-4 3 3 4-5"></path></svg>
+          Hashrate Trend
+        </h2>
+        <div class="chart-wrap"><canvas id="hashrateChart"></canvas></div>
+      </section>
+      <section class="card">
+        <h2>
+          <svg class="title-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9"></path><path d="M10 19V5"></path><path d="M16 19v-8"></path><path d="M22 19V3"></path></svg>
+          Shares Delta
+        </h2>
+        <div class="chart-wrap"><canvas id="sharesChart"></canvas></div>
+      </section>
+    </div>
+
+    <div class="bottom">
+      <section class="card">
+        <h2>
+          <svg class="title-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18l8-14 8 14"></path><path d="M8 18h8"></path></svg>
+          P2Pool Details
+        </h2>
+        <div class="stats" id="poolStats"></div>
+      </section>
+      <section class="card">
+        <h2>
+          <svg class="title-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18"></path><path d="M12 3a15 15 0 0 1 0 18"></path><path d="M12 3a15 15 0 0 0 0 18"></path></svg>
+          Network / Freshness
+        </h2>
+        <div class="stats" id="networkStats"></div>
+        <div class="stats" id="freshnessStats" style="margin-top:8px"></div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const DATA_URL = 'data.json';
+
+    function createEmptyPayload() {
+      return {
+        data: {
+          status: 'Waiting for data',
+          stratum: { shares_failed: 0, current_effort: 0, wallet: '', connections: 0 },
+          workers: [],
+          p2p: { peer_list_size: 0, uptime_str: 'Waiting...', monero_node: 'Waiting...' },
+          pool: { pool_statistics: { miners: 0, totalBlocksFound: 0, pplnsWindowSize: 0 } },
+          network: { height: 0 },
+          reliability: { not_enough_data: true, reasons: ['warming_up'], stale_sources: {} },
+        },
+        history: { labels: [], hr15m: [], hr1h: [], shares: [] },
+        meta: { last_update: 'Waiting for first snapshot', refresh_seconds: 30 },
+        format: {
+          wallet_short: 'Wallet',
+          observer_base_url: 'https://p2pool.observer',
+          hashrate_15m: '0 H/s',
+          shares_failed: '0',
+          last_share_ago: 'Never',
+          pool_hashrate: '0 H/s',
+          network_reward: '0.000000000000 XMR',
+          freshness_stratum: 'Waiting...',
+          freshness_pool: 'Waiting...',
+          freshness_network: 'Waiting...',
+          freshness_log: 'Waiting...',
+        },
+      };
+    }
+
+    let payload = createEmptyPayload();
+    let fetchError = '';
+    let fetchInFlight = false;
+    let refreshTimerId = null;
+    let hashrateChartInstance = null;
+    let sharesChartInstance = null;
+
+    function metricCell(label, value) {
+      return `<div class="cell"><span class="slabel">${label}</span><span class="svalue">${value}</span></div>`;
+    }
+
+    function asNumber(value) {
+      const n = Number(value);
+      return Number.isFinite(n) ? n : 0;
+    }
+
+    function formatWorkerHashrate(value) {
+      const num = asNumber(value);
+      if (num <= 0) {
+        return '0 H/s';
+      }
+      const units = ['H/s', 'KH/s', 'MH/s', 'GH/s', 'TH/s'];
+      let scaled = num;
+      let idx = 0;
+      while (scaled >= 1000 && idx < units.length - 1) {
+        scaled /= 1000;
+        idx += 1;
+      }
+      if (idx === 0) {
+        return `${Math.round(scaled)} ${units[idx]}`;
+      }
+      return `${scaled.toFixed(2)} ${units[idx]}`;
+    }
+
+    function formatAgo(seconds) {
+      const s = Math.max(0, Math.round(asNumber(seconds)));
+      if (s < 60) return `${s}s ago`;
+      if (s < 3600) return `${Math.floor(s / 60)}m ago`;
+      if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
+      return `${Math.floor(s / 86400)}d ago`;
+    }
+
+    function updateLastUpdateLabel() {
+      const el = document.getElementById('lastUpdate');
+      if (el) {
+        el.textContent = payload.meta?.last_update || 'Waiting for first snapshot';
+      }
+    }
+
+    function renderReliability() {
+      const rel = payload.data?.reliability || {};
+      const mount = document.getElementById('reliabilityBanner');
+      const reasons = Array.isArray(rel.reasons) && rel.reasons.length ? rel.reasons.join(', ') : 'none';
+      if (fetchError && payload.meta?.last_update === 'Waiting for first snapshot') {
+        mount.innerHTML = `<div class="alert">Waiting for first monitor snapshot: ${fetchError}</div>`;
+      } else if (fetchError) {
+        mount.innerHTML = `<div class="alert">Live update failed: ${fetchError}</div>`;
+      } else if (rel.not_enough_data) {
+        mount.innerHTML = `<div class="alert">Warm-up in progress: ${reasons}</div>`;
+      } else {
+        mount.innerHTML = `<div class="alert ok">Data reliability OK. No blocking issues detected.</div>`;
+      }
+    }
+
+    function renderHeader() {
+      const s = payload.data?.status || 'Unknown';
+      const chip = document.getElementById('statusChip');
+      chip.textContent = s;
+      chip.classList.remove('ok');
+      if (String(s).toLowerCase().includes('connect')) {
+        chip.classList.add('ok');
+      }
+
+      const walletChip = document.getElementById('walletChip');
+      const walletText = document.getElementById('walletChipText');
+      const observerBaseUrl = String(payload.format?.observer_base_url || 'https://p2pool.observer').replace(/\/$/, '');
+      walletText.textContent = payload.format?.wallet_short || 'Wallet';
+      const fullWallet = payload.data?.stratum?.wallet || '';
+      if (fullWallet) {
+        walletChip.href = `${observerBaseUrl}/miner/${encodeURIComponent(fullWallet)}`;
+      } else {
+        walletChip.href = `${observerBaseUrl}/`;
+      }
+      updateLastUpdateLabel();
+
+      const classicViewLink = document.getElementById('classicViewLink');
+      if (classicViewLink) {
+        const pathname = window.location.pathname || '';
+        if (pathname.endsWith('-ops.html')) {
+          classicViewLink.href = `${pathname.slice(0, -9)}.html${window.location.search || ''}`;
+        }
+      }
+    }
+
+    function renderKpis() {
+      const s = payload.data?.stratum || {};
+      const workers = payload.data?.workers || [];
+      const online = workers.filter(w => w.status === 'online').length;
+      const mount = document.getElementById('kpiStrip');
+
+      const cards = [
+        ['Hashrate Now', payload.format?.hashrate_15m || '0 H/s', 'accent-cyan'],
+        ['Workers Online', `${online} / ${workers.length}`, 'accent-green'],
+        ['Shares Failed', payload.format?.shares_failed || '0', asNumber(s.shares_failed) > 0 ? 'accent-red' : ''],
+        ['Last Share', payload.format?.last_share_ago || 'Never', ''],
+        ['P2P Peers', String(payload.data?.p2p?.peer_list_size ?? 0), ''],
+        ['Uptime', payload.data?.p2p?.uptime_str || 'Waiting...', ''],
+      ];
+
+      mount.innerHTML = cards.map(([label, value, cls]) => (
+        `<div class="kpi"><div class="label">${label}</div><div class="value ${cls}">${value}</div></div>`
+      )).join('');
+    }
+
+    function renderWorkers() {
+      const workers = payload.data?.workers || [];
+      const body = document.getElementById('workersTable');
+      if (!workers.length) {
+        body.innerHTML = '<tr><td colspan="5">Waiting for worker data.</td></tr>';
+        return;
+      }
+
+      body.innerHTML = workers.map((w) => {
+        let status = 'online';
+        let statusLabel = 'ONLINE';
+        if (w.status === 'recently_offline') {
+          status = 'recently-offline';
+          statusLabel = 'RECENTLY OFFLINE';
+        } else if (w.status === 'offline') {
+          status = 'recently-offline';
+          statusLabel = 'OFFLINE';
+        }
+        const hashrate = w.status === 'online' && w.hashrate_data_fresh ? formatWorkerHashrate(w.hashrate_current || 0) : '0 H/s';
+        return `
+          <tr>
+            <td>${w.name || 'Worker'}</td>
+            <td>${w.remote_address || 'N/A'}</td>
+            <td>${hashrate}</td>
+            <td><span class="status status-${status}">${statusLabel}</span></td>
+            <td>${w.status === 'online' ? 'now' : formatAgo(w.last_seen_ago_seconds || 0)}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderSignals() {
+      const rel = payload.data?.reliability || {};
+      const stale = Object.entries(rel.stale_sources || {}).filter(([, v]) => !!v).map(([k]) => k);
+      const staleLabel = stale.length ? stale.join(', ') : 'none';
+      const failed = payload.data?.stratum?.shares_failed || 0;
+      const effort = payload.data?.stratum?.current_effort || 0;
+      const panel = document.getElementById('signalsPanel');
+
+      panel.innerHTML = [
+        ['Freshness', `Stale sources: ${staleLabel}`],
+        ['Failed Shares', `${failed} failures reported`],
+        ['Node Connectivity', `Peer list size: ${payload.data?.p2p?.peer_list_size ?? 0}`],
+        ['Current Effort', `${Math.round(asNumber(effort))}%`],
+      ].map(([label, text]) => `<div class="signal"><b>${label}</b><span>${text}</span></div>`).join('');
+    }
+
+    function renderCards() {
+      const p = payload.data?.pool?.pool_statistics || {};
+      const n = payload.data?.network || {};
+      const p2p = payload.data?.p2p || {};
+
+      document.getElementById('poolStats').innerHTML = [
+        metricCell('Global Hashrate', payload.format?.pool_hashrate || '0 H/s'),
+        metricCell('Total Miners', (p.miners ?? 0).toLocaleString()),
+        metricCell('Blocks Found', (p.totalBlocksFound ?? 0).toLocaleString()),
+        metricCell('PPLNS Window', (p.pplnsWindowSize ?? 0).toLocaleString()),
+      ].join('');
+
+      document.getElementById('networkStats').innerHTML = [
+        metricCell('Network Height', (n.height ?? 0).toLocaleString()),
+        metricCell('Reward', payload.format?.network_reward || '0.000000000000 XMR'),
+        metricCell('Monero Node', p2p.monero_node || 'Waiting...'),
+        metricCell('Connections', (payload.data?.stratum?.connections ?? 0).toLocaleString()),
+      ].join('');
+
+      document.getElementById('freshnessStats').innerHTML = [
+        metricCell('Stratum API', payload.format?.freshness_stratum || 'Waiting...'),
+        metricCell('Pool Stats', payload.format?.freshness_pool || 'Waiting...'),
+        metricCell('Network Stats', payload.format?.freshness_network || 'Waiting...'),
+        metricCell('P2Pool Log', payload.format?.freshness_log || 'Waiting...'),
+      ].join('');
+    }
+
+    function chartBase() {
+      return {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        plugins: { legend: { labels: { color: '#c8d9f2' } } },
+        scales: {
+          x: { ticks: { color: '#9fb0c8', maxRotation: 0, autoSkip: true, maxTicksLimit: 8 }, grid: { color: 'rgba(160,180,210,0.15)' } },
+          y: { ticks: { color: '#9fb0c8' }, grid: { color: 'rgba(160,180,210,0.15)' } },
+        },
+      };
+    }
+
+    function renderCharts() {
+      if (typeof Chart === 'undefined') {
+        return;
+      }
+
+      const labels = payload.history?.labels || [];
+      const hr15m = payload.history?.hr15m || [];
+      const hr1h = payload.history?.hr1h || [];
+      const shares = payload.history?.shares || [];
+
+      if (!hashrateChartInstance) {
+        hashrateChartInstance = new Chart(document.getElementById('hashrateChart'), {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [
+              { label: '15m', data: hr15m, borderColor: '#2dc6ff', backgroundColor: 'rgba(45,198,255,0.16)', tension: 0.25, fill: false, pointRadius: 0 },
+              { label: '1h', data: hr1h, borderColor: '#41d596', backgroundColor: 'rgba(65,213,150,0.16)', tension: 0.25, fill: false, pointRadius: 0 },
+            ],
+          },
+          options: chartBase(),
+        });
+      } else {
+        hashrateChartInstance.data.labels = labels;
+        hashrateChartInstance.data.datasets[0].data = hr15m;
+        hashrateChartInstance.data.datasets[1].data = hr1h;
+        hashrateChartInstance.update('none');
+      }
+
+      if (!sharesChartInstance) {
+        sharesChartInstance = new Chart(document.getElementById('sharesChart'), {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [
+              { label: 'Shares Delta', data: shares, backgroundColor: 'rgba(242,169,64,0.45)', borderColor: '#f2a940', borderWidth: 1 },
+            ],
+          },
+          options: {
+            ...chartBase(),
+            plugins: { legend: { display: false } },
+          },
+        });
+      } else {
+        sharesChartInstance.data.labels = labels;
+        sharesChartInstance.data.datasets[0].data = shares;
+        sharesChartInstance.update('none');
+      }
+    }
+
+    function renderAll() {
+      renderHeader();
+      renderReliability();
+      renderKpis();
+      renderWorkers();
+      renderSignals();
+      renderCards();
+      renderCharts();
+    }
+
+    function scheduleRefresh() {
+      if (refreshTimerId) {
+        clearTimeout(refreshTimerId);
+      }
+      const seconds = Math.max(5, Number(payload.meta?.refresh_seconds || 30));
+      refreshTimerId = setTimeout(() => {
+        fetchAndRenderPayload();
+      }, seconds * 1000);
+    }
+
+    async function fetchAndRenderPayload() {
+      if (fetchInFlight) {
+        return;
+      }
+      fetchInFlight = true;
+      try {
+        const response = await fetch(`${DATA_URL}?t=${Date.now()}`, { cache: 'no-store' });
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        payload = await response.json();
+        fetchError = '';
+      } catch (error) {
+        fetchError = error instanceof Error ? error.message : String(error || 'unknown error');
+      } finally {
+        fetchInFlight = false;
+        renderAll();
+        scheduleRefresh();
+      }
+    }
+
+    renderAll();
+    fetchAndRenderPayload();
+  </script>
+</body>
+</html>

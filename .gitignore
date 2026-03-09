@@ -1,0 +1,11 @@
+# Environment files
+.env
+docker/.env
+
+# Runtime/generated artifacts
+src/__pycache__/
+tests/__pycache__/
+src/web/
+web/*.html
+web/history.json
+tmp/

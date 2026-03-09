@@ -1,0 +1,2 @@
+# No mandatory third-party dependencies.
+# Optional (frontend chart rendering in browser uses CDN Chart.js, not Python packages).
