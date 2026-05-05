@@ -1,28 +1,17 @@
-name: ${COMPOSE_PROJECT_NAME:-p2pool-stack}
-
-networks:
-  mining-net:
-
-volumes:
-  p2pool-data:
-  wm-output:
-
 services:
   p2pool-mini:
     image: ghcr.io/sethforprivacy/p2pool:latest
     restart: unless-stopped
     tty: true
     stdin_open: true
-    networks:
-      - mining-net
     volumes:
       - p2pool-data:/home/p2pool
       - /dev/hugepages:/dev/hugepages
     ports:
-      - "${P2POOL_STRATUM_PORT:-35443}:3333"
-      - "${P2POOL_P2P_PORT:-37888}:37888"
+      - "35443:3333"
+      - "37888:37888"
     command: >-
-      --wallet ${P2POOL_WALLET:?Set P2POOL_WALLET in .env}
+      --wallet REPLACE_WITH_YOUR_MONERO_WALLET
       --host p2pmd.xmrvsbeast.com --rpc-port 18081 --zmq-port 18084
       --host node2.monerodevs.org --rpc-port 18089 --zmq-port 18084
       --host xmr-full.p2pool.uk --rpc-port 18089 --zmq-port 18084
@@ -36,32 +25,24 @@ services:
       --stratum-api
 
   p2pool-wm:
-    build: .
-    image: p2pool-wm:local
+    image: ghcr.io/francio87/p2pool-web-monitor:latest
     restart: unless-stopped
-    networks:
-      - mining-net
-    working_dir: /app
     volumes:
       - p2pool-data:/p2pool-data:ro
       - wm-output:/output
-    environment:
-      P2POOL_DIR: ${MONITOR_P2POOL_DIR:-/p2pool-data}
-      DATA_API_DIR: ${MONITOR_DATA_API_DIR:-/p2pool-data}
-      OUTPUT: ${MONITOR_OUTPUT:-/output/index.html}
-      WORKER_RECENTLY_OFFLINE_SECONDS: ${WORKER_RECENTLY_OFFLINE_SECONDS:-900}
-      WORKER_RETENTION_SECONDS: ${WORKER_RETENTION_SECONDS:-86400}
     depends_on:
       - p2pool-mini
 
   web:
     image: nginx:1.27-alpine
     restart: unless-stopped
-    networks:
-      - mining-net
     ports:
-      - "${WEB_PORT:-3380}:80"
+      - "3380:80"
     volumes:
       - wm-output:/usr/share/nginx/html:ro
     depends_on:
       - p2pool-wm
+
+volumes:
+  p2pool-data:
+  wm-output:
