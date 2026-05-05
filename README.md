@@ -52,40 +52,77 @@ Mining ports exposed by default:
 - Stratum: `35443`
 - P2P: `37888`
 
-## Docker Run
+## Basic Configuration
 
-If you already have P2Pool data available on the host, you can run only the monitor image:
+### Wallet
 
-```bash
-docker run -d \
-  --name p2pool-wm \
-  --restart unless-stopped \
-  -p 3380:8080 \
-  -v /path/to/p2pool:/p2pool-data:ro \
-  ghcr.io/francio87/p2pool-web-monitor:latest
+Set your Monero wallet in the `p2pool-mini` command:
+
+```yaml
+--wallet REPLACE_WITH_YOUR_MONERO_WALLET
 ```
 
-The image generates `/output/index.html` and `/output/data.json`, then serves `/output` on container port `8080`.
+### Dashboard Port
+
+The dashboard is exposed on host port `3380` by default:
+
+```yaml
+ports:
+  - "3380:80"
+```
+
+If port `3380` is already used, change only the left side. For example:
+
+```yaml
+ports:
+  - "8080:80"
+```
+
+### Mining Ports
+
+P2Pool exposes these host ports by default:
+
+```yaml
+ports:
+  - "35443:3333"
+  - "37888:37888"
+```
+
+If a host port is already used, change only the left side and keep the container port unchanged.
+
+### Sidechain
+
+The default compose runs P2Pool mini:
+
+```yaml
+--mini
+```
+
+For P2Pool nano, replace `--mini` with:
+
+```yaml
+--nano
+```
+
+For main P2Pool, remove sidechain flags such as `--mini` or `--nano`.
 
 ## Advanced Configuration
 
-The default compose is intentionally simple. Advanced users can still override monitor internals with environment variables:
+The default compose is intentionally simple. Advanced users can still override monitor internals with environment variables.
 
-- `P2POOL_DIR`
-- `DATA_API_DIR`
-- `OUTPUT`
-- `HTTP_PORT`
-- `WORKER_RECENTLY_OFFLINE_SECONDS`
-- `WORKER_RETENTION_SECONDS`
+Monitor path and server overrides:
 
-## Worker Retention
+- `P2POOL_DIR`, default `/p2pool-data`
+- `DATA_API_DIR`, default `/p2pool-data`
+- `OUTPUT`, default `/output/index.html`
+- `HTTP_PORT`, default `8080`
 
-Default worker lifecycle timings:
+Worker lifecycle overrides:
 
-- `WORKER_RECENTLY_OFFLINE_SECONDS=900`
-- `WORKER_RETENTION_SECONDS=86400`
+- `WORKER_RECENTLY_OFFLINE_SECONDS`, default `900`
+- `WORKER_RETENTION_SECONDS`, default `86400`
 
-This means a worker becomes `recently offline` after 15 minutes without activity and remains visible for 24 hours before being pruned.
+With the default worker settings, a worker becomes `recently offline` after 15 minutes without activity and remains visible for 24 hours before being pruned.
 
 To override these values, add an `environment` block to the `p2pool-wm` service:
 
@@ -95,15 +132,6 @@ services:
     environment:
       WORKER_RECENTLY_OFFLINE_SECONDS: "900"
       WORKER_RETENTION_SECONDS: "86400"
-```
-
-## Verify
-
-From the repository root:
-
-```bash
-docker compose config -q
-docker build -t ghcr.io/francio87/p2pool-web-monitor:dev .
 ```
 
 ## Project Layout
