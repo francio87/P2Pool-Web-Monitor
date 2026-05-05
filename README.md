@@ -5,7 +5,7 @@
 🐳 Docker-first setup, ready in minutes
 
 P2Pool Web Monitor is a lightweight dashboard for local P2Pool nodes.
-It reads local P2Pool data, serves a static web UI, and keeps it updated through a shared `data.json` payload.
+It reads P2Pool `--data-api` files, writes a static web root, and keeps it updated through a shared `data.json` payload.
 
 ## Highlights
 
@@ -18,59 +18,127 @@ It reads local P2Pool data, serves a static web UI, and keeps it updated through
 
 ## Quickstart
 
-Enter the Docker folder:
+Edit `docker-compose.yml` and replace the wallet placeholder:
 
-```bash
-cd docker
+```yaml
+--wallet REPLACE_WITH_YOUR_MONERO_WALLET
 ```
 
-Copy the example env file:
+Start the full stack:
 
 ```bash
-cp .env.example .env
+docker compose up -d
 ```
 
-Edit `.env` and set at least:
-
-```bash
-P2POOL_WALLET=YOUR_WALLET_HERE
-```
-
-Start the stack:
-
-```bash
-docker compose up -d --build
-```
+The default stack starts P2Pool mini, P2Pool Web Monitor, and nginx.
+No `.env` file and no local Docker build are required.
 
 ## Open
 
 Dashboard:
 
 ```text
-http://<host>:<WEB_PORT>/
+http://<host>:3380/
 ```
 
 Live payload:
 
 ```text
-http://<host>:<WEB_PORT>/data.json
+http://<host>:3380/data.json
 ```
 
-## Verify
+Mining ports exposed by default:
 
-From the repository root:
+- Stratum: `35443`
+- P2P: `37888`
 
-```bash
-python3 -m unittest discover -s tests -q
-docker/smoke_test.sh
+## Basic Configuration
+
+### Wallet
+
+Set your Monero wallet in the `p2pool-mini` command:
+
+```yaml
+--wallet REPLACE_WITH_YOUR_MONERO_WALLET
+```
+
+### Dashboard Port
+
+The dashboard is exposed on host port `3380` by default:
+
+```yaml
+ports:
+  - "3380:80"
+```
+
+If port `3380` is already used, change only the left side. For example:
+
+```yaml
+ports:
+  - "8080:80"
+```
+
+### Mining Ports
+
+P2Pool exposes these host ports by default:
+
+```yaml
+ports:
+  - "35443:3333"
+  - "37888:37888"
+```
+
+If a host port is already used, change only the left side and keep the container port unchanged.
+
+### Sidechain
+
+The default compose runs P2Pool mini:
+
+```yaml
+--mini
+```
+
+For P2Pool nano, replace `--mini` with:
+
+```yaml
+--nano
+```
+
+For main P2Pool, remove sidechain flags such as `--mini` or `--nano`.
+
+## Advanced Configuration
+
+The default compose is intentionally simple. Advanced users can still override monitor internals with environment variables.
+
+Monitor path and server overrides:
+
+- `P2POOL_DIR`, default `/p2pool-data`
+- `DATA_API_DIR`, default `/p2pool-data`
+- `OUTPUT`, default `/output/index.html`
+- `HTTP_PORT`, default `8080`
+
+Worker lifecycle overrides:
+
+- `WORKER_RECENTLY_OFFLINE_SECONDS`, default `900`
+- `WORKER_RETENTION_SECONDS`, default `86400`
+
+With the default worker settings, a worker becomes `recently offline` after 15 minutes without activity and remains visible for 24 hours before being pruned.
+
+To override these values, add an `environment` block to the `p2pool-wm` service:
+
+```yaml
+services:
+  p2pool-wm:
+    environment:
+      WORKER_RECENTLY_OFFLINE_SECONDS: "900"
+      WORKER_RETENTION_SECONDS: "86400"
 ```
 
 ## Project Layout
 
-- `docker/` - deploy-ready Docker stack
+- `Dockerfile` - image for `p2pool-wm`
+- `docker-compose.yml` - all-in-one stack with P2Pool, monitor, and nginx
 - `src/` - monitor generator and dashboard templates
-- `tests/` - unit and regression tests
-- `execution/verify_live_coherence.py` - live consistency checker
 
 ## Notes
 

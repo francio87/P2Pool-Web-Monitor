@@ -7,4 +7,4 @@ __pycache__
 tests/
 web/
 test-dataset/
-docker/docker-compose.yml
+tmp/

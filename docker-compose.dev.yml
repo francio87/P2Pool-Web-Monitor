@@ -1,0 +1,3 @@
+services:
+  p2pool-wm:
+    image: ghcr.io/francio87/p2pool-web-monitor:dev
