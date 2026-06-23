@@ -8,6 +8,8 @@ from typing import Any
 from monitor_common import (
     LOG_HEAD_SCAN_BYTES,
     LOG_TAIL_SCAN_BYTES,
+    LOG_VERSION_BACKSCAN_BYTES,
+    LOG_VERSION_BACKSCAN_CHUNK_BYTES,
     STALE_THRESHOLDS_SECONDS,
     deep_copy_default_results,
     format_duration_seconds,
@@ -38,6 +40,7 @@ RE_TEXT_VALUE = re.compile(r"=\s+(.*)")
 RE_MONERO_NODE = re.compile(r"=\s+([^\s:]+):RPC\s+(\d+)")
 RE_MINER_HOST = re.compile(r"host\s*=\s*([^\s:]+):RPC\s+(\d+)")
 RE_SIDECHAIN_POOL_NAME = re.compile(r"(?:SideChain\s+)?pool name\s*=\s*(.+)$", re.IGNORECASE)
+RE_P2POOL_VERSION = re.compile(r"\b(P2Pool\s+v\S+(?:\s+\(built[^)]*\))?)", re.IGNORECASE)
 
 
 def deep_merge(target: dict[str, Any], source: dict[str, Any]) -> None:
@@ -167,6 +170,38 @@ def _read_log_head(log_path: Path, size_bytes: int) -> str:
         return ""
 
 
+def _extract_latest_p2pool_version_from_log(log_path: Path) -> str:
+    try:
+        file_size = log_path.stat().st_size
+    except OSError:
+        return ""
+
+    bytes_to_scan = min(file_size, LOG_VERSION_BACKSCAN_BYTES)
+    if bytes_to_scan <= 0:
+        return ""
+
+    position = file_size
+    carry = ""
+    scanned = 0
+    try:
+        with log_path.open("rb") as handle:
+            while position > 0 and scanned < bytes_to_scan:
+                chunk_size = min(LOG_VERSION_BACKSCAN_CHUNK_BYTES, position, bytes_to_scan - scanned)
+                position -= chunk_size
+                scanned += chunk_size
+                handle.seek(position)
+                chunk = handle.read(chunk_size).decode("utf-8", errors="ignore")
+                lines = (chunk + carry).splitlines()
+                carry = lines[0] if lines else ""
+                match = _extract_p2pool_version_from_lines(lines, reverse=True)
+                if match:
+                    return match
+    except OSError:
+        return ""
+
+    return _extract_p2pool_version_from_lines(carry.splitlines(), reverse=True)
+
+
 def _extract_sidechain_mode_from_lines(lines: list[str], reverse: bool = False) -> str:
     iterable = reversed(lines) if reverse else lines
     for sample in iterable:
@@ -174,6 +209,15 @@ def _extract_sidechain_mode_from_lines(lines: list[str], reverse: bool = False) 
         if pool_name_match:
             return normalize_sidechain_mode(pool_name_match.group(1))
     return "unknown"
+
+
+def _extract_p2pool_version_from_lines(lines: list[str], reverse: bool = False) -> str:
+    iterable = reversed(lines) if reverse else lines
+    for sample in iterable:
+        match = RE_P2POOL_VERSION.search(sample)
+        if match:
+            return " ".join(match.group(1).split())
+    return ""
 
 
 def parse_status_blocks(lines: list[str], results: dict[str, Any]) -> None:
@@ -251,6 +295,11 @@ def parse_log_file(log_path: Path, results: dict[str, Any]) -> None:
         results["workers"] = workers
         results["stratum"]["workers"] = workers
     parse_status_blocks(lines, results)
+
+    if not str(results.get("p2p", {}).get("p2pool_version", "") or "").strip():
+        results["p2p"]["p2pool_version"] = _extract_p2pool_version_from_lines(lines, reverse=True)
+    if not str(results.get("p2p", {}).get("p2pool_version", "") or "").strip():
+        results["p2p"]["p2pool_version"] = _extract_latest_p2pool_version_from_log(log_path)
 
     if normalize_sidechain_mode(results.get("stratum", {}).get("sidechain_mode")) == "unknown":
         results["stratum"]["sidechain_mode"] = _extract_sidechain_mode_from_lines(lines, reverse=True)

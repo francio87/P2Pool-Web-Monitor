@@ -9,3 +9,7 @@ src/web/
 web/*.html
 web/history.json
 tmp/
+
+# Agent local instructions
+AGENTS.md
+agent.md

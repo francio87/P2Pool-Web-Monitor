@@ -45,6 +45,14 @@ DEFAULT_RESULTS: dict[str, Any] = {
         "zmq_last_active": None,
         "connections": 0,
         "monero_node": "Unknown",
+        "p2pool_version": "",
+        "version_check": {
+            "enabled": True,
+            "latest_version": "",
+            "update_available": False,
+            "last_checked_ts": 0,
+            "error": None,
+        },
     },
     "peers": {
         "public_count": 0,
@@ -98,6 +106,8 @@ STALE_THRESHOLDS_SECONDS = {
 
 LOG_TAIL_SCAN_BYTES = 200_000
 LOG_HEAD_SCAN_BYTES = 64_000
+LOG_VERSION_BACKSCAN_BYTES = 64 * 1024 * 1024
+LOG_VERSION_BACKSCAN_CHUNK_BYTES = 1024 * 1024
 
 SIDECHAIN_OBSERVER_BASE_URLS = {
     "main": "https://p2pool.observer",

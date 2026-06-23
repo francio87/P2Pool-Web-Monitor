@@ -47,6 +47,7 @@ from monitor_render import (
     render_json,
 )
 from monitor_state import load_state, save_state
+from monitor_version import is_newer_version, update_p2pool_version_check
 from monitor_workers import (
     normalize_worker_record,
     parse_worker_from_api,
@@ -105,6 +106,8 @@ def main() -> None:
     )
     history = state.get("history", []) if isinstance(state.get("history"), list) else []
     worker_state = state.get("workers_state", {}) if isinstance(state.get("workers_state"), dict) else {}
+    p2pool_version_check_cache: dict[str, object] = {}
+    p2pool_version_cache = ""
 
     print(f"Starting P2Pool Web Monitor (input: {input_dir}, output: {output_path})")
     while True:
@@ -114,6 +117,18 @@ def main() -> None:
                 data_api_dir=args.data_api_dir,
                 worker_state=worker_state,
             )
+            current_p2pool_version = str(data.get("p2p", {}).get("p2pool_version", "") or "").strip()
+            if p2pool_version_cache and current_p2pool_version:
+                if not is_newer_version(current_p2pool_version, p2pool_version_cache):
+                    data["p2p"]["p2pool_version"] = p2pool_version_cache
+                else:
+                    p2pool_version_cache = current_p2pool_version
+            elif current_p2pool_version:
+                p2pool_version_cache = current_p2pool_version
+            elif p2pool_version_cache:
+                data["p2p"]["p2pool_version"] = p2pool_version_cache
+
+            p2pool_version_check_cache = update_p2pool_version_check(data, p2pool_version_check_cache)
             history = update_history(
                 history,
                 data,

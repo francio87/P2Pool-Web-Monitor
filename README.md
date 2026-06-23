@@ -122,6 +122,10 @@ Worker lifecycle overrides:
 - `WORKER_RECENTLY_OFFLINE_SECONDS`, default `900`
 - `WORKER_RETENTION_SECONDS`, default `86400`
 
+Version check override:
+
+- `P2POOL_VERSION_CHECK`, default `true`; set to `false` to disable the optional GitHub check for newer upstream P2Pool releases.
+
 With the default worker settings, a worker becomes `recently offline` after 15 minutes without activity and remains visible for 24 hours before being pruned.
 
 To override these values, add an `environment` block to the `p2pool-wm` service:

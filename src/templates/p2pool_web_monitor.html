@@ -401,6 +401,33 @@
       text-transform: uppercase;
     }
 
+    .label-with-badge {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .45rem;
+    }
+
+    .label-badge {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: .08rem .34rem;
+      background: color-mix(in srgb, var(--text-muted) 10%, transparent);
+      color: var(--text-muted);
+      font-size: .62rem;
+      font-weight: 650;
+      letter-spacing: 0;
+      line-height: 1.2;
+      text-transform: none;
+      white-space: nowrap;
+    }
+
+    .label-badge.update-available {
+      border-color: color-mix(in srgb, var(--danger) 55%, var(--border));
+      background: var(--danger-dim);
+      color: var(--danger);
+    }
+
     .value {
       display: block;
       font-size: 1rem;
@@ -800,7 +827,13 @@
           },
           pool: { pool_statistics: { miners: 0, totalBlocksFound: 0, pplnsWindowSize: 0, sidechainDifficulty: 0, sidechainHeight: 0, hashRate: 0 } },
           network: { height: 0, difficulty: 0, reward: 0 },
-          p2p: { uptime_str: 'Waiting...', peer_list_size: 0, monero_node: 'Waiting...' },
+          p2p: {
+            uptime_str: 'Waiting...',
+            peer_list_size: 0,
+            monero_node: 'Waiting...',
+            p2pool_version: '',
+            version_check: { enabled: true, latest_version: '', update_available: false },
+          },
           peers: { public_count: 0, onion_count: 0 },
           freshness: {},
           reliability: { not_enough_data: true, reasons: ['warming_up'], stale_sources: {} },
@@ -825,6 +858,10 @@
           freshness_p2p: 'Waiting...',
           freshness_pool: 'Waiting...',
           freshness_network: 'Waiting...',
+          p2pool_version: 'Unknown',
+          p2pool_version_short: 'Unknown',
+          p2pool_latest_version: 'Unknown',
+          p2pool_update_available: false,
         },
       };
     }
@@ -890,6 +927,7 @@
         stale_log: 'Log data stale',
         warming_up: 'Not enough mining samples yet',
         no_active_workers: 'No active workers currently',
+        p2pool_update_available: 'P2Pool update available',
       };
       return map[reason] || reason;
     }
@@ -920,6 +958,12 @@
         badge.classList.add('badge-warning');
         banner.style.display = 'block';
         banner.innerHTML = `<strong>Live update failed:</strong> ${uiState.fetchError}`;
+      } else if (payload.format?.p2pool_update_available) {
+        badge.textContent = 'Update Available';
+        badge.classList.remove('badge-online');
+        badge.classList.add('badge-warning');
+        banner.style.display = 'block';
+        banner.innerHTML = `<strong>P2Pool update available:</strong> installed ${payload.format?.p2pool_version_short || 'unknown'}, latest ${payload.format?.p2pool_latest_version || 'unknown'}`;
       } else if (reliability.not_enough_data) {
         badge.textContent = 'Limited Data';
         badge.classList.remove('badge-online');
@@ -1085,6 +1129,17 @@
       const workersClass = workersOnline === 0 ? 'danger' : '';
       const failedShares = asNumber(s.shares_failed);
       const failedClass = failedShares > 0 ? 'danger' : '';
+      const p2poolVersion = String(payload.format?.p2pool_version_short || '').replace(/^v/i, '').trim();
+      const latestP2poolVersion = String(payload.format?.p2pool_latest_version || '').replace(/^v/i, '').trim();
+      const updateAvailable = Boolean(payload.format?.p2pool_update_available);
+      const hasP2poolVersion = p2poolVersion && p2poolVersion !== 'Unknown';
+      const p2poolBadgeTitle = updateAvailable
+        ? `New P2Pool version available: v${latestP2poolVersion || 'unknown'} (installed v${p2poolVersion || 'unknown'})`
+        : `Installed P2Pool version: v${p2poolVersion}`;
+      const p2poolBadgeClass = updateAvailable ? 'label-badge update-available' : 'label-badge';
+      const nodeLabel = hasP2poolVersion
+        ? `<span class="label-with-badge"><span>Node</span><span class="${p2poolBadgeClass}" title="${p2poolBadgeTitle}">P2Pool v${p2poolVersion}</span></span>`
+        : 'Node';
 
       const walletChip = document.getElementById('walletChip');
       const walletRaw = String(s.wallet || '').trim();
@@ -1111,7 +1166,7 @@
           `shares-compact ${failedClass}`.trim()
         ),
         metricItem(
-          'Node',
+          nodeLabel,
           `<span class="node-stack"><span class="node-row"><span class="node-tag">UPTIME</span><span class="node-value">${p2p.uptime_str || 'Waiting...'}</span></span><span class="node-row"><span class="node-tag">NODE</span><span class="node-value">${p2p.monero_node || 'Waiting...'}</span></span><span class="node-row"><span class="node-tag">CHAIN</span><span class="node-value">${formatSidechain(payload.format?.sidechain_mode)}</span></span></span>`
         ),
       ].join('');
@@ -1124,11 +1179,12 @@
       ].join('');
 
       document.getElementById('poolStats').innerHTML = [
+        metricItem('Version', payload.format?.p2pool_version_short || 'Unknown'),
         metricItem('Chain', formatSidechain(payload.format?.sidechain_mode)),
-        metricItem('Blocks Found', p.totalBlocksFound ?? 0),
-        metricItem('PPLNS Window', p.pplnsWindowSize ?? 0),
-        metricItem('Sidechain Diff', p.sidechainDifficulty ?? 0),
         metricItem('Sidechain Height', p.sidechainHeight ?? 0),
+        metricItem('Sidechain Diff', p.sidechainDifficulty ?? 0),
+        metricItem('PPLNS Window', p.pplnsWindowSize ?? 0),
+        metricItem('Blocks Found', p.totalBlocksFound ?? 0),
       ].join('');
 
       document.getElementById('networkStats').innerHTML = [

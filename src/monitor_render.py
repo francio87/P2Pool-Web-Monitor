@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from datetime import datetime
 from typing import Any
 from pathlib import Path
@@ -21,10 +22,19 @@ from monitor_common import (
 from monitor_workers import normalize_workers_for_render
 
 
+def format_p2pool_version_short(version: str) -> str:
+    match = re.search(r"\bv(\d+(?:\.\d+)*)\b", str(version or ""), flags=re.IGNORECASE)
+    return match.group(1) if match else "Unknown"
+
+
 def build_render_data(data: dict[str, Any], history: list[dict[str, Any]]) -> dict[str, Any]:
     render_data_source = dict(data)
     render_data_source["workers"] = normalize_workers_for_render(data.get("workers", []))
     reliability = data.get("reliability", {}) if isinstance(data.get("reliability"), dict) else {}
+    p2pool_version = render_data_source.get("p2p", {}).get("p2pool_version") or ""
+    p2pool_version_check = render_data_source.get("p2p", {}).get("version_check", {})
+    if not isinstance(p2pool_version_check, dict):
+        p2pool_version_check = {}
 
     return {
         "data": render_data_source,
@@ -61,6 +71,10 @@ def build_render_data(data: dict[str, Any], history: list[dict[str, Any]]) -> di
             "freshness_p2p": format_unix_datetime(render_data_source["freshness"].get("p2p_ts", 0)),
             "freshness_pool": format_unix_datetime(render_data_source["freshness"].get("pool_stats_ts", 0)),
             "freshness_network": format_unix_datetime(render_data_source["freshness"].get("network_stats_ts", 0)),
+            "p2pool_version": p2pool_version or "Unknown",
+            "p2pool_version_short": format_p2pool_version_short(p2pool_version),
+            "p2pool_latest_version": p2pool_version_check.get("latest_version") or "Unknown",
+            "p2pool_update_available": bool(p2pool_version_check.get("update_available", False)),
             "reliability_reasons": reliability.get("reasons", []),
             "not_enough_data": bool(reliability.get("not_enough_data", False)),
         },
@@ -89,6 +103,7 @@ def print_verbose_summary(data: dict[str, Any]) -> None:
     print(f"Pool Hashrate:  {format_hashrate(pool_stats.get('hashRate', 0))}")
     print(f"Network Height: {data.get('network', {}).get('height', 'N/A')}")
     print(f"Monero Node:    {data.get('p2p', {}).get('monero_node', 'N/A')}")
+    print(f"P2Pool Version: {data.get('p2p', {}).get('p2pool_version', 'Unknown') or 'Unknown'}")
     print(f"Wallet:         {data.get('stratum', {}).get('wallet', 'Unknown')}")
     print(f"Shares Found:   {data.get('stratum', {}).get('shares_found', 0)}")
     print(f"Shares Failed:  {data.get('stratum', {}).get('shares_failed', 0)}")
