@@ -29,9 +29,10 @@ The Docker image uses `index.html` so web servers can serve the dashboard at `/`
 
 ## Worker Lifecycle Settings
 
-The application supports two optional environment overrides:
+The application supports these optional environment overrides:
 
 - `WORKER_RECENTLY_OFFLINE_SECONDS`, default `900`
 - `WORKER_RETENTION_SECONDS`, default `86400`
+- `P2POOL_VERSION_CHECK`, default `true`; set to `false` to disable the optional GitHub check for newer upstream P2Pool releases.
 
-These values are intentionally omitted from the default compose file because the defaults match the recommended behavior. They can be added to the `p2pool-wm` service environment when an operator wants custom retention timing.
+Worker lifecycle values are intentionally omitted from the default compose file because the defaults match the recommended behavior. They can be added to the `p2pool-wm` service environment when an operator wants custom retention timing.

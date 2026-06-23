@@ -38,6 +38,7 @@ RE_TEXT_VALUE = re.compile(r"=\s+(.*)")
 RE_MONERO_NODE = re.compile(r"=\s+([^\s:]+):RPC\s+(\d+)")
 RE_MINER_HOST = re.compile(r"host\s*=\s*([^\s:]+):RPC\s+(\d+)")
 RE_SIDECHAIN_POOL_NAME = re.compile(r"(?:SideChain\s+)?pool name\s*=\s*(.+)$", re.IGNORECASE)
+RE_P2POOL_VERSION = re.compile(r"\b(P2Pool\s+v\S+(?:\s+\(built[^)]*\))?)", re.IGNORECASE)
 
 
 def deep_merge(target: dict[str, Any], source: dict[str, Any]) -> None:
@@ -176,6 +177,15 @@ def _extract_sidechain_mode_from_lines(lines: list[str], reverse: bool = False) 
     return "unknown"
 
 
+def _extract_p2pool_version_from_lines(lines: list[str], reverse: bool = False) -> str:
+    iterable = reversed(lines) if reverse else lines
+    for sample in iterable:
+        match = RE_P2POOL_VERSION.search(sample)
+        if match:
+            return " ".join(match.group(1).split())
+    return ""
+
+
 def parse_status_blocks(lines: list[str], results: dict[str, Any]) -> None:
     stratum = results["stratum"]
     pool_stats = results["pool"]["pool_statistics"]
@@ -252,11 +262,21 @@ def parse_log_file(log_path: Path, results: dict[str, Any]) -> None:
         results["stratum"]["workers"] = workers
     parse_status_blocks(lines, results)
 
+    if not str(results.get("p2p", {}).get("p2pool_version", "") or "").strip():
+        results["p2p"]["p2pool_version"] = _extract_p2pool_version_from_lines(lines, reverse=True)
+
     if normalize_sidechain_mode(results.get("stratum", {}).get("sidechain_mode")) == "unknown":
         results["stratum"]["sidechain_mode"] = _extract_sidechain_mode_from_lines(lines, reverse=True)
-    if normalize_sidechain_mode(results.get("stratum", {}).get("sidechain_mode")) == "unknown":
+    if (
+        normalize_sidechain_mode(results.get("stratum", {}).get("sidechain_mode")) == "unknown"
+        or not str(results.get("p2p", {}).get("p2pool_version", "") or "").strip()
+    ):
         head = _read_log_head(log_path, LOG_HEAD_SCAN_BYTES)
-        results["stratum"]["sidechain_mode"] = _extract_sidechain_mode_from_lines(head.splitlines())
+        head_lines = head.splitlines()
+        if normalize_sidechain_mode(results.get("stratum", {}).get("sidechain_mode")) == "unknown":
+            results["stratum"]["sidechain_mode"] = _extract_sidechain_mode_from_lines(head_lines)
+        if not str(results.get("p2p", {}).get("p2pool_version", "") or "").strip():
+            results["p2p"]["p2pool_version"] = _extract_p2pool_version_from_lines(head_lines)
 
     current_node = str(results.get("p2p", {}).get("monero_node", "") or "").strip().lower()
     if current_node in {"", "unknown"}:

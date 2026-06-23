@@ -45,6 +45,14 @@ DEFAULT_RESULTS: dict[str, Any] = {
         "zmq_last_active": None,
         "connections": 0,
         "monero_node": "Unknown",
+        "p2pool_version": "",
+        "version_check": {
+            "enabled": True,
+            "latest_version": "",
+            "update_available": False,
+            "last_checked_ts": 0,
+            "error": None,
+        },
     },
     "peers": {
         "public_count": 0,

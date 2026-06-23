@@ -5,6 +5,7 @@ ENV P2POOL_DIR=/p2pool-data
 ENV DATA_API_DIR=/p2pool-data
 ENV OUTPUT=/output/index.html
 ENV HTTP_PORT=8080
+ENV P2POOL_VERSION_CHECK=true
 
 WORKDIR /app
 

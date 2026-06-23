@@ -429,7 +429,7 @@ __CHART_JS__
           status: 'Waiting for data',
           stratum: { shares_failed: 0, current_effort: 0, wallet: '', connections: 0 },
           workers: [],
-          p2p: { peer_list_size: 0, uptime_str: 'Waiting...', monero_node: 'Waiting...' },
+          p2p: { peer_list_size: 0, uptime_str: 'Waiting...', monero_node: 'Waiting...', p2pool_version: '' },
           pool: { pool_statistics: { miners: 0, totalBlocksFound: 0, pplnsWindowSize: 0 } },
           network: { height: 0 },
           reliability: { not_enough_data: true, reasons: ['warming_up'], stale_sources: {} },
@@ -448,6 +448,8 @@ __CHART_JS__
           freshness_pool: 'Waiting...',
           freshness_network: 'Waiting...',
           freshness_log: 'Waiting...',
+          p2pool_version: 'Unknown',
+          p2pool_version_short: 'Unknown',
         },
       };
     }
@@ -629,6 +631,7 @@ __CHART_JS__
         metricCell('Network Height', (n.height ?? 0).toLocaleString()),
         metricCell('Reward', payload.format?.network_reward || '0.000000000000 XMR'),
         metricCell('Monero Node', p2p.monero_node || 'Waiting...'),
+        metricCell('Version', payload.format?.p2pool_version_short || 'Unknown'),
         metricCell('Connections', (payload.data?.stratum?.connections ?? 0).toLocaleString()),
       ].join('');
 

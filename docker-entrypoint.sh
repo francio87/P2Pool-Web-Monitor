@@ -5,6 +5,7 @@ set -eu
 : "${DATA_API_DIR:=/p2pool-data}"
 : "${OUTPUT:=/output/index.html}"
 : "${HTTP_PORT:=8080}"
+: "${P2POOL_VERSION_CHECK:=true}"
 
 OUTPUT_DIR=$(dirname "$OUTPUT")
 mkdir -p "$OUTPUT_DIR"

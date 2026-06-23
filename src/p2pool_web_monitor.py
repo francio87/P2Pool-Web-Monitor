@@ -47,6 +47,7 @@ from monitor_render import (
     render_json,
 )
 from monitor_state import load_state, save_state
+from monitor_version import update_p2pool_version_check
 from monitor_workers import (
     normalize_worker_record,
     parse_worker_from_api,
@@ -105,6 +106,7 @@ def main() -> None:
     )
     history = state.get("history", []) if isinstance(state.get("history"), list) else []
     worker_state = state.get("workers_state", {}) if isinstance(state.get("workers_state"), dict) else {}
+    p2pool_version_check_cache: dict[str, object] = {}
 
     print(f"Starting P2Pool Web Monitor (input: {input_dir}, output: {output_path})")
     while True:
@@ -114,6 +116,7 @@ def main() -> None:
                 data_api_dir=args.data_api_dir,
                 worker_state=worker_state,
             )
+            p2pool_version_check_cache = update_p2pool_version_check(data, p2pool_version_check_cache)
             history = update_history(
                 history,
                 data,
