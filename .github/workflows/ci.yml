@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - dev
+  pull_request:
+    branches:
+      - dev
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      PYTHONPATH: src
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install pytest
+        run: python3 -m pip install --upgrade pip pytest
+
+      - name: Compile Python sources
+        run: python3 -m compileall src
+
+      - name: Run pytest when tests are present
+        run: |
+          if [ -d tests ] && find tests -type f -name 'test_*.py' | grep -q .; then
+            python3 -m pytest -q
+          else
+            echo "No pytest test files found; skipping pytest step."
+          fi
+
+      - name: Validate Docker Compose configuration
+        run: docker compose config
