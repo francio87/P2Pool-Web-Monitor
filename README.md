@@ -32,7 +32,7 @@ docker compose up -d
 
 The default stack starts P2Pool mini, P2Pool Web Monitor, and nginx.
 No `.env` file and no local Docker build are required.
-The compose stack also includes healthchecks for the monitor and web services so container state reflects whether `data.json`, `history.json`, and `index.html` are being generated and served correctly.
+The compose stack also includes healthchecks for P2Pool, the monitor, and web services so container state reflects whether local P2Pool API files and dashboard output are being generated and served correctly.
 
 ## Open
 
@@ -125,10 +125,11 @@ If you want the newest development image, use the `:dev` tag. The `:latest` and 
 
 The bundled `docker-compose.yml` defines healthchecks for:
 
-- `p2pool-wm`: verifies `/output/data.json` and `/output/history.json`
-- `web`: verifies `/usr/share/nginx/html/data.json` and `/usr/share/nginx/html/index.html`
+- `p2pool-mini`: verifies fresh P2Pool data-api/local-api files under `/home/p2pool`, positive P2P/pool/network counters, and listening stratum/P2P ports
+- `p2pool-wm`: verifies fresh, valid `/output/data.json`, valid `/output/history.json`, expected top-level JSON keys, and the built-in HTTP server
+- `web`: verifies fresh mounted dashboard files and that nginx serves both `/` and `/data.json`
 
-This helps Docker report whether the monitor is generating files and whether nginx is serving the generated dashboard content.
+This helps Docker report whether P2Pool is publishing usable local API data, whether the monitor is generating valid files, and whether nginx is serving the generated dashboard content.
 
 ## Advanced Configuration
 

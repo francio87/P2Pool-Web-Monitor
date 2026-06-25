@@ -14,7 +14,12 @@ def fail(message: str) -> int:
     return 1
 
 
-def validate_json_file(path: Path, *, max_age_seconds: int | None = None) -> int:
+def validate_json_file(
+    path: Path,
+    *,
+    max_age_seconds: int | None = None,
+    required_keys: tuple[str, ...] = (),
+) -> int:
     if not path.exists():
         return fail(f"missing file: {path}")
     if not path.is_file() or path.stat().st_size <= 0:
@@ -26,9 +31,16 @@ def validate_json_file(path: Path, *, max_age_seconds: int | None = None) -> int
             return fail(f"stale file: {path} age={age_seconds}s max={max_age_seconds}s")
 
     try:
-        json.loads(path.read_text(encoding="utf-8"))
+        payload = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
         return fail(f"invalid json: {path}: {exc}")
+
+    if required_keys:
+        if not isinstance(payload, dict):
+            return fail(f"invalid json object: {path}")
+        missing_keys = [key for key in required_keys if key not in payload]
+        if missing_keys:
+            return fail(f"missing json keys: {path}: {', '.join(missing_keys)}")
 
     return 0
 
@@ -48,6 +60,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Container healthcheck for p2pool-web-monitor")
     parser.add_argument("--output-dir", default="/output")
     parser.add_argument("--max-age", type=int, default=120)
+    parser.add_argument("--history-max-age", type=int, default=300)
     parser.add_argument("--http-url", default="http://127.0.0.1:8080/index.html")
     parser.add_argument("--http-timeout", type=int, default=3)
     return parser.parse_args()
@@ -58,8 +71,16 @@ def main() -> int:
     output_dir = Path(args.output_dir)
 
     checks = [
-        validate_json_file(output_dir / "data.json", max_age_seconds=args.max_age),
-        validate_json_file(output_dir / "history.json"),
+        validate_json_file(
+            output_dir / "data.json",
+            max_age_seconds=args.max_age,
+            required_keys=("data", "history", "meta", "format"),
+        ),
+        validate_json_file(
+            output_dir / "history.json",
+            max_age_seconds=args.history_max_age,
+            required_keys=("meta", "history", "workers_state"),
+        ),
         validate_http(args.http_url, timeout_seconds=args.http_timeout),
     ]
     return 0 if all(code == 0 for code in checks) else 1
