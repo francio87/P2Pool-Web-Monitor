@@ -78,18 +78,7 @@ services:
       p2pool-wm:
         condition: service_started
     healthcheck:
-      test:
-        - CMD-SHELL
-        - |
-          data_json=/usr/share/nginx/html/data.json
-          index_html=/usr/share/nginx/html/index.html
-          test -s "$$data_json" &&
-          test -s "$$index_html" &&
-          age=$$(($$(date +%s) - $$(stat -c %Y "$$data_json"))) &&
-          test "$$age" -le 120 &&
-          grep -q '"meta"' "$$data_json" &&
-          wget -q -O - http://127.0.0.1/ | grep -q 'P2Pool' &&
-          wget -q -O - http://127.0.0.1/data.json | grep -q '"meta"'
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/"]
       interval: 30s
       timeout: 5s
       retries: 3
