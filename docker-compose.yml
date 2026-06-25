@@ -31,13 +31,18 @@ services:
       - p2pool-data:/p2pool-data:ro
       - wm-output:/output
     depends_on:
-      - p2pool-mini
+      p2pool-mini:
+        condition: service_started
     healthcheck:
-      test: ["CMD-SHELL", "test -s /output/data.json && test -s /output/history.json"]
+      test:
+        [
+          "CMD-SHELL",
+          "if [ -f /app/src/container_healthcheck.py ]; then exec python3 /app/src/container_healthcheck.py --output-dir /output --max-age 120 --http-url http://127.0.0.1:8080/index.html; fi; test -s /output/data.json && test -s /output/history.json",
+        ]
       interval: 30s
       timeout: 5s
       retries: 3
-      start_period: 20s
+      start_period: 40s
 
   web:
     image: nginx:1.27-alpine
@@ -47,13 +52,18 @@ services:
     volumes:
       - wm-output:/usr/share/nginx/html:ro
     depends_on:
-      - p2pool-wm
+      p2pool-wm:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "test -s /usr/share/nginx/html/data.json && test -s /usr/share/nginx/html/index.html"]
+      test:
+        [
+          "CMD-SHELL",
+          "test -s /usr/share/nginx/html/data.json && test -s /usr/share/nginx/html/index.html && age=$$(($(date +%s) - $(stat -c %Y /usr/share/nginx/html/data.json))) && test \"$$age\" -le 120 && wget -q -O /dev/null http://127.0.0.1/",
+        ]
       interval: 30s
       timeout: 5s
       retries: 3
-      start_period: 10s
+      start_period: 15s
 
 volumes:
   p2pool-data:
