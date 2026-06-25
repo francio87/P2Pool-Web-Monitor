@@ -32,6 +32,7 @@ docker compose up -d
 
 The default stack starts P2Pool mini, P2Pool Web Monitor, and nginx.
 No `.env` file and no local Docker build are required.
+The compose stack also includes healthchecks for the monitor and web services so container state reflects whether `data.json`, `history.json`, and `index.html` are being generated and served correctly.
 
 ## Open
 
@@ -109,6 +110,27 @@ For main P2Pool, remove sidechain flags such as `--mini` or `--nano`.
 ## Advanced Configuration
 
 The default compose is intentionally simple. Advanced users can still override monitor internals with environment variables.
+
+## Docker Image Tags
+
+Published images follow the branch workflow:
+
+- `ghcr.io/francio87/p2pool-web-monitor:dev` for pushes to `dev`
+- `ghcr.io/francio87/p2pool-web-monitor:latest` for the default branch
+- `ghcr.io/francio87/p2pool-web-monitor:stable` for the default branch
+
+If you want the newest development image, use the `:dev` tag. The `:latest` and `:stable` tags are intended for the default branch only.
+
+## Healthchecks
+
+The bundled `docker-compose.yml` defines healthchecks for:
+
+- `p2pool-wm`: verifies `/output/data.json` and `/output/history.json`
+- `web`: verifies `/usr/share/nginx/html/data.json` and `/usr/share/nginx/html/index.html`
+
+This helps Docker report whether the monitor is generating files and whether nginx is serving the generated dashboard content.
+
+## Advanced Configuration
 
 Monitor path and server overrides:
 
