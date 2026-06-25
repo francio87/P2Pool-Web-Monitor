@@ -68,7 +68,7 @@ services:
         condition: service_started
 
   web:
-    image: nginx:1.27-alpine
+    image: nginx:stable-alpine
     restart: unless-stopped
     ports:
       - "3380:80"
