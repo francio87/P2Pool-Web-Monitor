@@ -1,0 +1,163 @@
+/* Shared dashboard components. Theme files define their variants and tokens. */
+@layer components {
+  .solid-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    transition: border-color .2s ease, background-color .2s ease;
+  }
+
+  .badge {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    padding: .34rem .55rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .theme-select {
+    display: inline-flex;
+    align-items: center;
+    gap: .38rem;
+    color: var(--text-muted);
+    font-size: .72rem;
+  }
+
+  .theme-select select {
+    appearance: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: .38rem 1.65rem .38rem .5rem;
+    background: var(--surface-elev);
+    color: var(--text);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .theme-select select:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+
+  .theme-menu {
+    position: relative;
+  }
+
+  .theme-popover {
+    position: absolute;
+    z-index: 10;
+    top: calc(100% + .45rem);
+    right: 0;
+    display: none;
+    min-width: 178px;
+    padding: .65rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    box-shadow: var(--shadow);
+  }
+
+  .theme-popover.is-open {
+    display: block;
+  }
+
+  .theme-popover .theme-select {
+    display: grid;
+    gap: .35rem;
+  }
+
+  .theme-popover .theme-select select {
+    width: 100%;
+  }
+
+  .icon-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface-elev);
+    color: var(--text);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .stat {
+    border: 1px solid var(--border);
+    background: var(--surface-elev);
+    border-radius: 10px;
+    padding: .58rem .64rem;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .label {
+    display: block;
+    margin-bottom: .2rem;
+    font-size: .68rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+  }
+
+  .value {
+    display: block;
+    font-size: 1rem;
+    font-weight: 650;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    line-height: 1.25;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      scroll-behavior: auto !important;
+      transition-duration: .01ms !important;
+      animation-duration: .01ms !important;
+      animation-iteration-count: 1 !important;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .header-controls {
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    .theme-menu {
+      margin-left: auto;
+    }
+
+    .theme-select select {
+      min-height: 32px;
+    }
+
+    .workers-table {
+      min-width: 0;
+      table-layout: fixed;
+    }
+
+    .workers-table th:nth-child(2),
+    .workers-table td:nth-child(2),
+    .workers-table th:nth-child(5),
+    .workers-table td:nth-child(5) {
+      display: none;
+    }
+
+    .workers-table th:nth-child(1),
+    .workers-table td:nth-child(1) { width: 40%; }
+    .workers-table th:nth-child(3),
+    .workers-table td:nth-child(3) { width: 32%; }
+    .workers-table th:nth-child(4),
+    .workers-table td:nth-child(4) { width: 28%; }
+  }
+
+}

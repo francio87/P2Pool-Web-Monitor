@@ -1,0 +1,101 @@
+/* Market-inspired dark theme. Select with data-dashboard-theme="market-dark". */
+html[data-dashboard-theme="market-dark"] {
+  color-scheme: dark;
+  --bg: #090909;
+  --surface: #1a1a1a;
+  --surface-elev: #121212;
+  --border: #2a2a2a;
+  --hover: #252525;
+  --text: #f4f4f5;
+  --text-muted: #a1a1aa;
+  --primary: #ff7a00;
+  --primary-dim: rgba(255, 122, 0, 0.14);
+  --accent: #ff9900;
+  --accent-dim: rgba(255, 153, 0, 0.13);
+  --danger: #ff4d55;
+  --danger-dim: rgba(255, 77, 85, 0.12);
+  --success: #25d878;
+  --success-dim: rgba(37, 216, 120, 0.12);
+  --chart-grid: rgba(255, 255, 255, 0.08);
+  --chart-15m: #ff7a00;
+  --chart-15m-fill: rgba(255, 122, 0, 0.10);
+  --chart-1h: #a78bfa;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: none;
+}
+
+html[data-dashboard-theme="market-dark"] body {
+  background: var(--bg);
+  letter-spacing: -0.01em;
+}
+
+html[data-dashboard-theme="market-dark"] .solid-panel,
+html[data-dashboard-theme="market-dark"] .chart-panel,
+html[data-dashboard-theme="market-dark"] .table-wrap {
+  border-color: var(--border);
+  box-shadow: none;
+}
+
+html[data-dashboard-theme="market-dark"] .solid-panel {
+  background: var(--surface);
+  border-radius: var(--radius);
+}
+
+html[data-dashboard-theme="market-dark"] .header-bar {
+  background: #111111;
+  border-color: #242424;
+}
+
+html[data-dashboard-theme="market-dark"] .theme-select select {
+  background: #111111;
+  border-color: #353535;
+}
+
+html[data-dashboard-theme="market-dark"] .theme-select select:hover,
+html[data-dashboard-theme="market-dark"] .icon-btn:hover {
+  border-color: rgba(255, 122, 0, 0.55);
+}
+
+html[data-dashboard-theme="market-dark"] .stat {
+  background: var(--surface-elev);
+  border-radius: var(--radius-sm);
+}
+
+html[data-dashboard-theme="market-dark"] .stat.primary {
+  border-color: rgba(255, 122, 0, 0.5);
+  background: rgba(255, 122, 0, 0.08);
+}
+
+html[data-dashboard-theme="market-dark"] .value,
+html[data-dashboard-theme="market-dark"] .hashrate-value,
+html[data-dashboard-theme="market-dark"] .shares-value,
+html[data-dashboard-theme="market-dark"] .node-value,
+html[data-dashboard-theme="market-dark"] td {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+html[data-dashboard-theme="market-dark"] .badge,
+html[data-dashboard-theme="market-dark"] .worker-status {
+  border-radius: 5px;
+  letter-spacing: .04em;
+}
+
+html[data-dashboard-theme="market-dark"] .badge-online {
+  color: #ffac3d;
+  background: rgba(255, 122, 0, 0.13);
+  border-color: rgba(255, 122, 0, 0.34);
+}
+
+html[data-dashboard-theme="market-dark"] .icon-btn,
+html[data-dashboard-theme="market-dark"] .meta-chip {
+  border-radius: 7px;
+}
+
+html[data-dashboard-theme="market-dark"] .refresh-progress-bar {
+  background: var(--primary);
+}
+
+html[data-dashboard-theme="market-dark"] th {
+  color: #8e8e96;
+}

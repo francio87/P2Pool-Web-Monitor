@@ -1,0 +1,13 @@
+import { cp, mkdir, rm } from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const sourceDir = path.join(projectRoot, 'frontend');
+const outputDir = path.join(projectRoot, 'src', 'templates');
+
+await mkdir(outputDir, { recursive: true });
+await cp(path.join(sourceDir, 'p2pool_web_monitor.html'), path.join(outputDir, 'p2pool_web_monitor.html'));
+await cp(path.join(sourceDir, 'p2pool-monitor.js'), path.join(outputDir, 'p2pool-monitor.js'));
+await rm(path.join(outputDir, 'js'), { recursive: true, force: true });
+await cp(path.join(sourceDir, 'js'), path.join(outputDir, 'js'), { recursive: true });

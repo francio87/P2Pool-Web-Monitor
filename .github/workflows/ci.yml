@@ -34,6 +34,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install frontend development dependencies
+        run: npm ci
+
+      - name: Verify frontend source assets and unit tests
+        run: |
+          npm run test:frontend
+          npm run check:frontend-assets
+
       - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:

@@ -16,6 +16,27 @@ It reads P2Pool `--data-api` files, writes a static web root, and keeps it updat
 - 🔗 Sidechain-aware observer links for `main`, `mini`, `nano`
 - 🐳 Full Docker stack included
 
+## Frontend development
+
+The dashboard is offline-first. Tailwind CSS is used only to compile the local stylesheet: Node.js is **not** required by the production image or at runtime.
+
+```bash
+npm ci
+npm run build:frontend        # compile/copy all runtime frontend assets
+npm run check:frontend-assets # CI guard: generated assets must be committed and current
+npm run watch:css             # rebuild CSS while editing the UI
+npm run test:frontend   # frontend unit tests
+npm run test:e2e        # Playwright interaction and responsive UI tests
+npm run preview:fixtures # local dashboard with persistent worker test scenarios
+```
+
+- Frontend sources: `frontend/` (`base.css`, `components.css`, `dashboard.css`, themes, HTML, JS modules and JS copy step)
+- Compiled/copied runtime assets: `src/templates/p2pool-monitor.css`, `src/templates/p2pool-monitor.js`, `src/templates/js/`
+- Theme architecture and visual references: `docs/frontend-themes.md`
+- Persistent Playwright worker scenarios: `tests/fixtures/workers.mjs` (IPv4/IPv6 lifecycle, 15 and 30 mixed rigs)
+
+Commit the compiled stylesheet with UI changes, so Docker builds do not need Node.js.
+
 ## Quickstart
 
 Edit `docker-compose.yml` and replace the wallet placeholder:

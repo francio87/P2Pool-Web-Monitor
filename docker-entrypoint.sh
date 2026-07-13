@@ -11,6 +11,10 @@ OUTPUT_DIR=$(dirname "$OUTPUT")
 mkdir -p "$OUTPUT_DIR"
 
 cp -f /app/src/templates/p2pool_web_monitor.html "$OUTPUT"
+cp -f /app/src/templates/p2pool-monitor.css "$OUTPUT_DIR/p2pool-monitor.css"
+cp -f /app/src/templates/p2pool-monitor.js "$OUTPUT_DIR/p2pool-monitor.js"
+mkdir -p "$OUTPUT_DIR/js"
+cp -f /app/src/templates/js/*.js "$OUTPUT_DIR/js/"
 cp -f /app/src/templates/chart.umd.min.js "$OUTPUT_DIR/chart.umd.min.js"
 cp -f /app/src/templates/inter-regular.ttf "$OUTPUT_DIR/inter-regular.ttf"
 cp -f /app/src/templates/favicon.svg "$OUTPUT_DIR/favicon.svg"
