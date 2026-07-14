@@ -1,0 +1,19 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:css": "tailwindcss -i ./frontend/p2pool-monitor.css -o ./src/templates/p2pool-monitor.css --minify",
+    "build:js": "node ./frontend/build-js.mjs",
+    "build:frontend": "npm run build:css && npm run build:js",
+    "check:frontend-assets": "npm run build:frontend && git diff --exit-code -- src/templates/p2pool_web_monitor.html src/templates/p2pool-monitor.css src/templates/p2pool-monitor.js src/templates/js",
+    "watch:css": "tailwindcss -i ./frontend/p2pool-monitor.css -o ./src/templates/p2pool-monitor.css --watch",
+    "test:frontend": "node --test tests/frontend.test.mjs",
+    "test:e2e": "npm run build:frontend && playwright test",
+    "preview:fixtures": "npm run build:frontend && node tests/fixture-preview-server.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.1",
+    "@tailwindcss/cli": "^4.3.2",
+    "tailwindcss": "^4.3.2"
+  }
+}

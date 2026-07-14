@@ -16,4 +16,7 @@ RUN chmod +x /app/docker-entrypoint.sh
 
 EXPOSE 8080
 
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 --start-period=40s \
+  CMD python3 /app/src/container_healthcheck.py --output-dir /output --max-age 120 --http-url http://127.0.0.1:8080/index.html
+
 CMD ["/app/docker-entrypoint.sh"]

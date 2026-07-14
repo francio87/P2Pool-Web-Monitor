@@ -1,5 +1,7 @@
 # P2Pool Web Monitor
 
+![P2Pool Web Monitor themes: Classic light, Classic dark, and Market dark](docs/images/dashboard-themes-preview.png)
+
 ⚡ Live-updating P2Pool dashboard from local data  
 📊 Workers, hashrate, shares, charts  
 🐳 Docker-first setup, ready in minutes
@@ -15,6 +17,27 @@ It reads P2Pool `--data-api` files, writes a static web root, and keeps it updat
 - 📈 Historical charts for hashrate and shares
 - 🔗 Sidechain-aware observer links for `main`, `mini`, `nano`
 - 🐳 Full Docker stack included
+
+## Frontend development
+
+The dashboard is offline-first. Tailwind CSS is used only to compile the local stylesheet: Node.js is **not** required by the production image or at runtime.
+
+```bash
+npm ci
+npm run build:frontend        # compile/copy all runtime frontend assets
+npm run check:frontend-assets # CI guard: generated assets must be committed and current
+npm run watch:css             # rebuild CSS while editing the UI
+npm run test:frontend   # frontend unit tests
+npm run test:e2e        # Playwright interaction and responsive UI tests
+npm run preview:fixtures # local dashboard with persistent worker test scenarios
+```
+
+- Frontend sources: `frontend/` (`base.css`, `components.css`, `dashboard.css`, themes, HTML, JS modules and JS copy step)
+- Compiled/copied runtime assets: `src/templates/p2pool-monitor.css`, `src/templates/p2pool-monitor.js`, `src/templates/js/`
+- Theme architecture and visual references: `docs/frontend-themes.md`
+- Persistent Playwright worker scenarios: `tests/fixtures/workers.mjs` (IPv4/IPv6 lifecycle, 15 and 30 mixed rigs)
+
+Commit the compiled stylesheet with UI changes, so Docker builds do not need Node.js.
 
 ## Quickstart
 
@@ -32,6 +55,7 @@ docker compose up -d
 
 The default stack starts P2Pool mini, P2Pool Web Monitor, and nginx.
 No `.env` file and no local Docker build are required.
+The compose stack also includes healthchecks for P2Pool, the monitor, and web services so container state reflects whether local P2Pool API files and dashboard output are being generated and served correctly.
 
 ## Open
 
@@ -109,6 +133,28 @@ For main P2Pool, remove sidechain flags such as `--mini` or `--nano`.
 ## Advanced Configuration
 
 The default compose is intentionally simple. Advanced users can still override monitor internals with environment variables.
+
+## Docker Image Tags
+
+Published images follow the branch workflow:
+
+- `ghcr.io/francio87/p2pool-web-monitor:dev` for pushes to `dev`
+- `ghcr.io/francio87/p2pool-web-monitor:latest` for the default branch
+- `ghcr.io/francio87/p2pool-web-monitor:stable` for the default branch
+
+If you want the newest development image, use the `:dev` tag. The `:latest` and `:stable` tags are intended for the default branch only.
+
+## Healthchecks
+
+The bundled `docker-compose.yml` defines healthchecks for:
+
+- `p2pool-mini`: verifies fresh P2Pool data-api/local-api files under `/home/p2pool`, positive P2P/pool/network counters, and listening stratum/P2P ports
+- `p2pool-wm`: verifies fresh, valid `/output/data.json`, valid `/output/history.json`, expected top-level JSON keys, and the built-in HTTP server
+- `web`: verifies fresh mounted dashboard files and that nginx serves both `/` and `/data.json`
+
+This helps Docker report whether P2Pool is publishing usable local API data, whether the monitor is generating valid files, and whether nginx is serving the generated dashboard content.
+
+## Advanced Configuration
 
 Monitor path and server overrides:
 

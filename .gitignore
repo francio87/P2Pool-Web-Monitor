@@ -1,5 +1,10 @@
 # Environment files
 .env
+
+# Frontend build dependencies and test reports
+node_modules/
+playwright-report/
+test-results/
 docker/.env
 
 # Runtime/generated artifacts

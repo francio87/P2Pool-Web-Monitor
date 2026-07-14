@@ -23,6 +23,39 @@ services:
       --data-api /home/p2pool
       --no-upnp
       --stratum-api
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - |
+          max_age=300
+          now=$$(date +%s)
+          fresh() {
+            test -s "$$1" || exit 1
+            mt=$$(stat -c %Y "$$1" 2>/dev/null || echo 0)
+            age=$$((now - mt))
+            test "$$age" -le "$$max_age"
+          }
+          positive() {
+            grep -Eq "\"$$2\"[[:space:]]*:[[:space:]]*[1-9][0-9]*" "$$1"
+          }
+          listen() {
+            grep -Eq ":$$1[[:space:]].*[[:space:]]0A[[:space:]]" /proc/net/tcp /proc/net/tcp6 2>/dev/null
+          }
+          fresh /home/p2pool/local/p2p &&
+          fresh /home/p2pool/pool/stats &&
+          fresh /home/p2pool/network/stats &&
+          positive /home/p2pool/local/p2p peer_list_size &&
+          positive /home/p2pool/local/p2p connections &&
+          positive /home/p2pool/pool/stats sidechainHeight &&
+          positive /home/p2pool/pool/stats sidechainDifficulty &&
+          positive /home/p2pool/network/stats height &&
+          positive /home/p2pool/network/stats difficulty &&
+          listen 0D05 &&
+          listen 9400
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 120s
 
   p2pool-wm:
     image: ghcr.io/francio87/p2pool-web-monitor:latest
@@ -31,17 +64,25 @@ services:
       - p2pool-data:/p2pool-data:ro
       - wm-output:/output
     depends_on:
-      - p2pool-mini
+      p2pool-mini:
+        condition: service_started
 
   web:
-    image: nginx:1.27-alpine
+    image: nginx:stable-alpine
     restart: unless-stopped
     ports:
       - "3380:80"
     volumes:
       - wm-output:/usr/share/nginx/html:ro
     depends_on:
-      - p2pool-wm
+      p2pool-wm:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
 
 volumes:
   p2pool-data:
