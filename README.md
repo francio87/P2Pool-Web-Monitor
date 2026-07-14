@@ -1,5 +1,7 @@
 # P2Pool Web Monitor
 
+![P2Pool Web Monitor themes: Classic light, Classic dark, and Market dark](docs/images/dashboard-themes-preview.png)
+
 ⚡ Live-updating P2Pool dashboard from local data  
 📊 Workers, hashrate, shares, charts  
 🐳 Docker-first setup, ready in minutes
