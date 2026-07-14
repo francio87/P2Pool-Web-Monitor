@@ -31,7 +31,7 @@ function createMixedWorkers(count) {
       ? `rig-${index + 1}-with-an-intentionally-long-name-for-layout-testing`
       : `rig-${String(index + 1).padStart(2, '0')}`;
     const address = isIpv6
-      ? `2001:db8:85a3::${(index + 10).toString(16)}`
+      ? `2001:0db8:85a3:0000:0000:8a2e:0370:${(index + 10).toString(16).padStart(4, '0')}`
       : `192.168.1.${index + 20}`;
     return worker(name, address, status, status === 'online' ? (index + 1) * 1234 : 0, status === 'online' ? 0 : (index + 1) * 60);
   }));

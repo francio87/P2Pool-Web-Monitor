@@ -90,6 +90,106 @@ test('classic light preset and refresh controls are interactive', async ({ page 
   await expect(pauseButton).toHaveAttribute('aria-label', 'Pause auto refresh');
 });
 
+const RELIABILITY_BANNER_SCENARIOS = [
+  {
+    name: 'reports an available P2Pool update',
+    configure(payload) {
+      payload.format.p2pool_update_available = true;
+      payload.format.p2pool_version_short = '4.5.1';
+      payload.format.p2pool_latest_version = '4.6.0';
+    },
+    status: 'Update Available',
+    text: 'P2Pool update available: installed 4.5.1, latest 4.6.0',
+  },
+  {
+    name: 'prioritizes an update over simultaneous warm-up and stale-source warnings',
+    configure(payload) {
+      payload.format.p2pool_update_available = true;
+      payload.format.p2pool_version_short = '4.5.1';
+      payload.format.p2pool_latest_version = '4.6.0';
+      payload.data.reliability = {
+        not_enough_data: true,
+        reasons: ['warming_up', 'stale_stratum'],
+        stale_sources: { stratum: true },
+      };
+    },
+    status: 'Update Available',
+    text: 'P2Pool update available: installed 4.5.1, latest 4.6.0',
+  },
+  {
+    name: 'reports monitor warm-up',
+    configure(payload) {
+      payload.data.reliability = { not_enough_data: true, reasons: ['warming_up'], stale_sources: {} };
+    },
+    status: 'Limited Data',
+    text: 'Warm-up in progress: Not enough mining samples yet',
+  },
+  {
+    name: 'reports stale sources',
+    configure(payload) {
+      payload.data.reliability = { not_enough_data: false, reasons: ['stale_stratum'], stale_sources: { stratum: true } };
+    },
+    status: 'Stale Sources',
+    text: 'Data warning: Stratum data stale',
+  },
+];
+
+for (const scenario of RELIABILITY_BANNER_SCENARIOS) {
+  test(`reliability banner ${scenario.name}`, async ({ page }) => {
+    const payload = structuredClone(fixture);
+    scenario.configure(payload);
+    await page.route('**/data.json**', (route) => route.fulfill({ json: payload }));
+    await page.goto(baseUrl, { waitUntil: 'networkidle' });
+
+    const banner = page.locator('#reliabilityBanner');
+    await expect(banner).toBeVisible();
+    await expect(banner).toHaveText(scenario.text);
+    await expect(page.locator('#statusBadge')).toHaveText(scenario.status);
+    await expect(page.locator('#statusBadge')).toHaveClass(/badge-warning/);
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    for (const preset of Object.keys(DASHBOARD_THEMES)) {
+      await page.locator('#themeMenuToggle').click();
+      await page.locator('#dashboardTheme').selectOption(preset);
+      expect(await banner.evaluate((element) => element.scrollWidth <= element.clientWidth + 1), `${scenario.name}/${preset} banner overflow`).toBe(true);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `${scenario.name}/${preset} document overflow`).toBe(true);
+    }
+  });
+}
+
+test('reliability banner reports a failed first monitor snapshot', async ({ page }) => {
+  await page.route('**/data.json**', (route) => route.fulfill({ status: 503, body: 'Monitor unavailable' }));
+  await page.goto(baseUrl, { waitUntil: 'networkidle' });
+
+  await expect(page.locator('#reliabilityBanner')).toHaveText('Waiting for first monitor snapshot: HTTP 503');
+  await expect(page.locator('#statusBadge')).toHaveText('Waiting');
+  await expect(page.locator('#statusBadge')).toHaveClass(/badge-warning/);
+});
+
+test('a failed refresh takes precedence over an update notification', async ({ page }) => {
+  const payload = structuredClone(fixture);
+  payload.format.p2pool_update_available = true;
+  payload.format.p2pool_latest_version = '4.6.0';
+  let requests = 0;
+  await page.route('**/data.json**', (route) => {
+    requests += 1;
+    if (requests === 1) {
+      return route.fulfill({ json: payload });
+    }
+    return route.fulfill({ status: 503, body: 'Monitor unavailable' });
+  });
+  await page.goto(baseUrl, { waitUntil: 'networkidle' });
+  await expect(page.locator('#statusBadge')).toHaveText('Update Available');
+
+  const failedRefresh = page.waitForResponse((response) => response.url().includes('/data.json') && response.status() === 503);
+  await page.locator('#refreshNowBtn').click();
+  await failedRefresh;
+
+  await expect(page.locator('#reliabilityBanner')).toHaveText('Live update failed: HTTP 503');
+  await expect(page.locator('#statusBadge')).toHaveText('Update Error');
+  await expect(page.locator('#statusBadge')).toHaveClass(/badge-warning/);
+});
+
 test('empty worker data renders a safe placeholder', async ({ page }) => {
   const originalWorkers = fixture.data.workers;
   fixture.data.workers = [];

@@ -14,6 +14,10 @@ const scenarios = {
   ...WORKER_SCENARIOS,
   ...MIXED_WORKER_SCENARIOS,
   empty: [],
+  banner_update: DEFAULT_WORKERS,
+  banner_warmup: DEFAULT_WORKERS,
+  banner_stale: DEFAULT_WORKERS,
+  banner_fetch_error: DEFAULT_WORKERS,
 };
 
 function previewNavigation(activeScenario) {
@@ -21,9 +25,12 @@ function previewNavigation(activeScenario) {
     ['default', 'All'],
     ['ipv4_lifecycle', 'IPv4'],
     ['ipv6_lifecycle', 'IPv6'],
-    ['mixed_15', '15 rigs'],
-    ['mixed_30', '30 rigs'],
+    ['mixed_15', 'Mixed'],
     ['empty', 'Empty'],
+    ['banner_update', 'Update banner'],
+    ['banner_warmup', 'Warm-up banner'],
+    ['banner_stale', 'Stale banner'],
+    ['banner_fetch_error', 'Fetch error'],
   ];
   return `<nav class="fixture-preview-nav" aria-label="Fixture preview scenarios">
     <strong>Fixture preview</strong>
@@ -35,6 +42,19 @@ function previewNavigation(activeScenario) {
     .fixture-preview-nav a:hover, .fixture-preview-nav a[aria-current="page"] { border-color: #ff7a00; background: #ff7a0026; }
     @media (max-width: 600px) { .fixture-preview-nav { left: .5rem; right: .5rem; bottom: .5rem; flex-wrap: wrap; justify-content: center; } }
   </style>`;
+}
+
+function buildScenarioPayload(scenario) {
+  const payload = buildDashboardPayload(scenarios[scenario]);
+  if (scenario === 'banner_update') {
+    payload.format.p2pool_update_available = true;
+    payload.format.p2pool_latest_version = '4.6.0';
+  } else if (scenario === 'banner_warmup') {
+    payload.data.reliability = { not_enough_data: true, reasons: ['warming_up'], stale_sources: {} };
+  } else if (scenario === 'banner_stale') {
+    payload.data.reliability = { not_enough_data: false, reasons: ['stale_stratum'], stale_sources: { stratum: true } };
+  }
+  return payload;
 }
 
 function contentType(filePath) {
@@ -53,8 +73,13 @@ const server = createServer(async (request, response) => {
   const asset = parts.join('/') || 'p2pool_web_monitor.html';
 
   if (asset === 'data.json') {
+    if (scenario === 'banner_fetch_error') {
+      response.writeHead(503, { 'content-type': 'text/plain', 'cache-control': 'no-store' });
+      response.end('Monitor unavailable');
+      return;
+    }
     response.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
-    response.end(JSON.stringify(buildDashboardPayload(scenarios[scenario])));
+    response.end(JSON.stringify(buildScenarioPayload(scenario)));
     return;
   }
 
