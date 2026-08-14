@@ -1,17 +1,3 @@
-export function metricItem(label, value, classes = '') {
-  return `<div class="stat ${classes}"><span class="label">${label}</span><span class="value">${value}</span></div>`;
-}
-
-export function escapeHtml(value) {
-  return String(value ?? '').replace(/[&<>'"]/g, (character) => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    "'": '&#39;',
-    '"': '&quot;',
-  })[character]);
-}
-
 export function formatSidechain(mode) {
   const normalized = String(mode || 'unknown').trim().toLowerCase();
   return normalized || 'unknown';

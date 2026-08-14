@@ -1,12 +1,3 @@
-import {
-  asNumber,
-  escapeHtml,
-  formatAgeSeconds,
-  formatSidechain,
-  formatWorkerHashrate,
-  humanizeReason,
-  metricItem,
-} from './components.js';
 import { createChartRenderer } from './charts.js';
 import { createDashboardControls } from './controls.js';
 import { createDashboardRenderer } from './renderer.js';

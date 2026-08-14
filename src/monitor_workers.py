@@ -2,15 +2,10 @@ from __future__ import annotations
 
 from typing import Any
 
+from monitor_common import parse_int
+
 
 WORKER_FALLBACK_NAME = "Worker"
-
-
-def parse_int(value: str, default: int) -> int:
-    try:
-        return int(value)
-    except (TypeError, ValueError):
-        return default
 
 
 def _as_stripped_text(value: Any, default: str = "") -> str:

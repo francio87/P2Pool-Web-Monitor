@@ -4,12 +4,7 @@ import time
 from datetime import datetime
 from typing import Any
 
-
-def parse_int(value: str, default: int) -> int:
-    try:
-        return int(value)
-    except (TypeError, ValueError):
-        return default
+from monitor_common import parse_int
 
 
 def build_history_point(

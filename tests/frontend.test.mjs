@@ -3,7 +3,6 @@ import test from 'node:test';
 
 import {
   asNumber,
-  escapeHtml,
   formatAgeSeconds,
   formatSidechain,
   formatWorkerHashrate,
@@ -21,8 +20,7 @@ test('formatting helpers handle invalid and boundary values', () => {
   assert.equal(formatSidechain(' MINI '), 'mini');
 });
 
-test('dynamic values are escaped before HTML rendering', () => {
-  assert.equal(escapeHtml('<rig "one">'), '&lt;rig &quot;one&quot;&gt;');
+test('reason labels preserve known and unknown values', () => {
   assert.equal(humanizeReason('warming_up'), 'Not enough mining samples yet');
   assert.equal(humanizeReason('unknown_reason'), 'unknown_reason');
 });

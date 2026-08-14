@@ -4,12 +4,7 @@ import json
 from pathlib import Path
 from typing import Any, Callable
 
-
-def parse_int(value: str, default: int) -> int:
-    try:
-        return int(value)
-    except (TypeError, ValueError):
-        return default
+from monitor_common import parse_int
 
 
 def build_empty_state(schema_version: int) -> dict[str, Any]:
